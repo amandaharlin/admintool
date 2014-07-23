@@ -1,55 +1,76 @@
-{% extends 'layout.html' %}
+{% extends 'layout.html' %} {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/typeaheadjs.css') }}">{% endblock %} {% block content %}
+<h1>Instructor Finder</h1>
 
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/typeaheadjs.css') }}">
-{% endblock %}
+<div class="row">
+  <div class="col-md-12">
+    <form method="get" role="form" autocomplete="off">
+      <!-- <h4>Geography</h4> -->
 
-{% block content %}
-  <h1>Instructor Finder</h1>
-
-  <div class="row">
-    <div class="col-md-6">
-      <form method="get" role="form" autocomplete="off">
-        <h4>Geography</h4>
-
+      <div>
         <div class="form-group">
-          <label for="city">City</label>
-          <input type="text" class="form-control" id="city" name="city" value="{{ request.args.city }}" data-geo-finder="{{ url_for('cities_json') }}">
-          <input type="hidden" name="city_lat" value="{{ request.args.city_lat }}">
-          <input type="hidden" name="city_long" value="{{ request.args.city_long }}">
-        </div>
 
-        <div class="form-group">
-          <label for="radius">Search Radius</label>
+          Find the
+           <!--  <label for="closest">Search Closest Instructor</label> -->
+         <span>
+          <select id="closest" name="closest">
+            {% macro closest_option(val) -%}
+            <option value="{{ val }}" {% if request.args.closest == val %}selected{% endif %}>
+              {% if val == '1' %}{{ val }} {% else %}{{ val }} {% endif %}</option>
+            {%- endmacro %}
+            <option value="0">Any</option>
+            {{ closest_option('1') }}
+            {{ closest_option('3') }}
+            {{ closest_option('5') }}
+            {{ closest_option('10')}}
+            </select>
+        </span>
+          closest instructors
+          
+
+          
+          within
+            <!--  <label for="radius">Search Radius</label> -->
+         <span>
           <select id="radius" name="radius">
             {% macro radius_option(val) -%}
-            <option value="{{ val }}" {% if request.args.radius == val %}selected{% endif %}>Within {{ val }} km of city</option>
+            <option value="{{ val }}" {% if request.args.radius == val %}selected{% endif %}>
+            {{ val }} km </option>
             {%- endmacro %}
 
-            <option value="0">--</option>
+            <option value="0">Any</option>
             {{ radius_option('50') }}
             {{ radius_option('100') }}
             {{ radius_option('250') }}
             {{ radius_option('500') }}
           </select>
-        </div>
-        <h5>Or</h5>
-        <div class="form-group">
-          <label for="closest">Search Closest</label>
-          <select id="closest" name="closest">
-            {% macro closest_option(val) -%}
-            <option value="{{ val }}" {% if request.args.closest == val %}selected{% endif %}>
-              {% if val == '1' %}{{ val }} Instructor{% else %}{{ val }} Instuctors{% endif %}</option>
-            {%- endmacro %}
+        </span>
+          distance
+          
 
-            <option value="0">--</option>
-            {{ closest_option('1') }}
-            {{ closest_option('3') }}
-            {{ closest_option('5') }}
-            {{ closest_option('10') }}
-          </select>
-        </div>
-        <h4>Skills</h4>
+         
+          near
+            <!--  <label for="city">City</label> -->
+            <span>
+          <input type="text" class="form-control typeahead" id="city" name="city" value="{{ request.args.city }}" data-geo-finder="{{ url_for('cities_json') }}">
+          <input type="hidden" name="city_lat" value="{{ request.args.city_lat }}">
+          <input type="hidden" name="city_long" value="{{ request.args.city_long }}">
+          </span>
+          
+          who teach
+          <!-- <h4>Skills</h4> -->
+          <span>
+           <!-- Build your select: -->
+            <select class="multiselect" multiple="multiple">
+              <option value="R">R</option>
+              <option value="Python">Python</option>
+              <option value="Git">Git</option>
+              <option value="DB">DB</option>
+              <option value="Unix">Unix</option>
+            </select>
+          </span>
+
+        <!--   <span>
         <div class="checkbox">
           <label>
             <input type="checkbox" name="python"
@@ -63,32 +84,42 @@
              {% if request.args.r %}checked{% endif %}> R
           </label>
         </div>
+        </span> -->
+
+          </span>
+        </div>
 
         <button type="submit" class="btn btn-default">Submit</button>
-      </form>
-    </div>
-    <div class="col-md-6">
-      <h4>Instructors</h4>
-      <ul class="media-list">
-        {% for person in people %}
-          <li class="media">
-            <img class="media-object pull-left" src="//gravatar.com/avatar/{{ person.email_hash() }}?d=mm" alt="gravatar for {{ person.email }}">
-            <div class="media-body">
-              {{ person.personal }} {{person.family}}<br>
-              <small><a href="https://www.google.com/#q={{ person.facts.airport.iata }}+airport">{{ person.facts.airport.iata }}</a> ({{ person.facts.airport.country }})</small><br>
-              {% if person.facts.skills %}
-              <small>Teaches {{ person.facts.skills }}</small><br>
-              {% endif %}
-              <small><a href="mailto:{{ person.email }}">{{ person.email }}</a></small>
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
+    </form>
     </div>
   </div>
-{% endblock %}
 
-{% block scripts %}
+  <div class="col-md-12">
+    <h3>Instructors</h3>
+    <ul class="media-list">
+      {% for person in people %}
+      <li class="media">
+        <img class="media-object pull-left" src="//gravatar.com/avatar/{{ person.email_hash() }}?d=mm" alt="gravatar for {{ person.email }}">
+        <div class="media-body">
+          {{ person.personal }} {{person.family}}
+          <br>
+          <small><a href="https://www.google.com/#q={{ person.facts.airport.iata }}+airport">{{ person.facts.airport.iata }}</a> ({{ person.facts.airport.country }})</small>
+          <br>{% if person.facts.skills %}
+          <small>Teaches {{ person.facts.skills }}</small>
+          <br>{% endif %}
+          <small><a href="mailto:{{ person.email }}">{{ person.email }}</a></small>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
 <script src="{{ url_for('static', filename='vendor/typeahead.jquery.js') }}"></script>
 <script src="{{ url_for('static', filename='js/geo-finder.js') }}"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('.multiselect').multiselect();
+  });
+</script>
 {% endblock %}
